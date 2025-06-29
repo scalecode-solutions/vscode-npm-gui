@@ -1,4 +1,25 @@
 import { SearchPackageResultVersion } from '../models/nuget.model';
+import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
+
+/**
+ * Gets the current extension version from package.json
+ * @returns {string} The current extension version
+ */
+export function getExtensionVersion(): string {
+    try {
+        const extensionPath = vscode.extensions.getExtension('aliasadidev.nugetpackagemanagergui')?.extensionPath;
+        if (extensionPath) {
+            const packageJsonPath = path.join(extensionPath, 'package.json');
+            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+            return packageJson.version || 'Unknown';
+        }
+    } catch (error) {
+        console.error('Error getting extension version:', error);
+    }
+    return 'Unknown';
+}
 
 /**
  * Find the latest stable version of a NuGet package
@@ -78,14 +99,15 @@ export function mergeVersionPatternsWithSearch(
 
 export function generateVersionPatterns(version: string): string[] {
   const regex = /^(\d+)\.(\d+)\.(.*)$/;
-  let lst = [];
+  const lst: string[] = [];
 
   const rep1 = version.replace(regex, `$1.*`);
-  if (rep1) {
+  if (rep1 && rep1 !== version) {
     lst.push(rep1);
   }
+  
   const rep2 = version.replace(regex, `$1.$2.*`);
-  if (rep2) {
+  if (rep2 && rep2 !== version) {
     lst.push(rep2);
   }
 

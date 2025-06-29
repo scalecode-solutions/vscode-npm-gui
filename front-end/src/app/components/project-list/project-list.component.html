@@ -1,174 +1,164 @@
-<!-- Update / Remove Packages -->
-<div class="container-fluid" style="max-width: 1400px">
-  <div class="row">
-    <div class="col-md-12">
-      <div class="row">
-        <div
-          class="search-box mt-3 col-md-6 order-2 order-sm-1"
-          style="display: flex">
-          <div class="input-group">
-            <input
-              [(ngModel)]="searchValue"
-              type="text"
-              class="form-control"
-              placeholder="Search in packages..."
-              style="height: auto" />
-            <div class="input-group-prepend">
-              <div class="input-group-text">
-                <span class="ml-1 mr-1">Contains</span>
-                <input
-                  type="radio"
-                  name="filter-search-type"
-                  class="mr-1"
-                  [value]="filterSearchTypes.Contains"
-                  [(ngModel)]="filterType"
-                  (ngModelChange)="onSwitchFilterType()" />
-                <span class="ml-1 mr-1">StartsWith</span>
-                <input
-                  type="radio"
-                  name="filter-search-type"
-                  class="mr-1"
-                  [value]="filterSearchTypes.StartsWith"
-                  [(ngModel)]="filterType"
-                  (ngModelChange)="onSwitchFilterType()" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="btn-box mt-3 col-md-6 order-1 order-sm-2">
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="updateAllProjects()"
-            style="margin-right: 3px">
-            Update All Packages
-          </button>
-          <button
-            class="ml-1"
-            mat-raised-button
-            color="primary"
-            (click)="loadPackageVersion(true)">
-            Load Package Versions
-          </button>
-        </div>
+<div class="project-list-container" style="padding: 16px; max-width: 1200px; margin: 0 auto; color: var(--vscode-foreground); font-family: var(--vscode-font-family); position: relative;">
+  <!-- Version badge -->
+  <div class="version-badge" style="position: absolute; top: 8px; right: 16px; background: var(--vscode-badge-background); color: var(--vscode-badge-foreground); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; opacity: 0.8;">
+    <span>v{{extensionVersion}}</span>
+  </div>
+  
+  <!-- Header with search and actions -->
+  <div class="header">
+    <div class="search-box">
+      <div class="search-input">
+        <input
+          [(ngModel)]="searchValue"
+          (keyup.enter)="onSearch()"
+          type="text"
+          class="form-control"
+          placeholder="Search packages..."
+          aria-label="Search packages"
+          [disabled]="isLoading" />
+        <button class="btn btn-icon" (click)="onSearch()" [disabled]="isLoading">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="filter-options">
+        <label class="radio-label">
+          <input
+            type="radio"
+            name="filter-search-type"
+            [value]="filterSearchTypes.Contains"
+            [(ngModel)]="filterType"
+            (ngModelChange)="onSwitchFilterType()"
+            [disabled]="isLoading" />
+          <span>Contains</span>
+        </label>
+        
+        <label class="radio-label">
+          <input
+            type="radio"
+            name="filter-search-type"
+            [value]="filterSearchTypes.StartsWith"
+            [(ngModel)]="filterType"
+            (ngModelChange)="onSwitchFilterType()"
+            [disabled]="isLoading" />
+          <span>Starts with</span>
+        </label>
       </div>
     </div>
-
-    <div *ngFor="let project of projects" class="col-md-12">
-      <div class="project-container">
-        <table class="table project-table">
+    
+    <div class="actions">
+      <button
+        class="btn btn-primary"
+        (click)="updateAllProjects()"
+        [disabled]="isLoading || !projects.length">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Update All
+      </button>
+      
+      <button
+        class="btn btn-outline ml-2"
+        (click)="loadPackageVersion(true)"
+        [disabled]="isLoading">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"/>
+        </svg>
+        Refresh Versions
+      </button>
+    </div>
+  </div>
+  
+  <!-- Projects List -->
+  <div class="projects" *ngIf="projects?.length; else noProjects">
+    <div *ngFor="let project of projects" class="project-card">
+      <div class="project-header">
+        <div class="project-info">
+          <h3 class="project-name">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+            {{ project.projectName }}
+          </h3>
+          <div class="project-path">{{ project.projectPath }}</div>
+        </div>
+        <div class="project-stats">
+          <span class="stat-badge" [ngClass]="{ 'has-updates': getOutdatedCount(project) > 0 }">
+            <span class="stat-label">Updates:</span>
+            <span class="stat-value">{{ getOutdatedCount(project) }}</span>
+          </span>
+          <span class="stat-badge">
+            <span class="stat-label">Packages:</span>
+            <span class="stat-value">{{ project.packages.length || 0 }}</span>
+          </span>
+        </div>
+      </div>
+      
+      <div class="packages-table">
+        <table class="table">
           <thead>
             <tr>
-              <th colspan="1">Project Name</th>
-              <th colspan="6" style="text-align: left">
-                {{ project.projectName }}
-              </th>
-            </tr>
-            <tr>
-              <th colspan="1">Project Path</th>
-              <th colspan="6" style="text-align: left">
-                {{ project.projectPath }}
-              </th>
-            </tr>
-            <tr>
-              <th style="width: 30%">Package Name</th>
-              <th style="width: 8%">Source Name</th>
-              <th style="width: 10%">Installed Version</th>
-              <th style="width: 10%">Versions</th>
-              <th style="width: 6%">Is Updated</th>
-              <th style="width: 6%">Newer Version</th>
-              <th style="width: 30%">Actions</th>
+              <th>Package</th>
+              <th>Current Version</th>
+              <th>Latest Version</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              class="tr-package"
-              *ngFor="let package of project.packages"
-              [hidden]="!searchFilter(package.packageName)">
-              <td>{{ package.packageName }}</td>
+            <tr *ngFor="let pkg of project.packages">
+              <td class="package-name">
+                {{ pkg.packageName }}
+              </td>
+              <td>{{ pkg.packageVersion }}</td>
               <td>
-                <span *ngIf="package.sourceId == null">{{
-                  package.sourceName
-                }}</span>
-                <a
-                  class="packageUrl"
-                  *ngIf="package.sourceId"
-                  [attr.href]="
-                    getPackageSourceWebUrl(
-                      packageSources,
-                      package.sourceId,
-                      package.packageName,
-                      package.packageVersion
-                    )
-                  "
-                  target="_blank"
-                  >{{ package.sourceName }}</a
-                >
+                <span [ngClass]="getVersionStyle(pkg)">
+                  {{ pkg.newerVersion || 'Loading...' }}
+                </span>
               </td>
-              <td>{{ package.packageVersion }}</td>
-              <td>
-                <select
-                  #t
-                  (change)="change(project.id, package.packageName, t.value)"
-                  class="versions-option"
-                  (onCreate)="
-                    change(
-                      project.id,
-                      package.packageName,
-                      package.newerVersion
-                    )
-                  "
-                  [attr.value]="package.newerVersion">
-                  <option
-                    *ngFor="let version of package.versionList"
-                    [attr.value]="version"
-                    [attr.selected]="
-                      version == package.newerVersion ? 'selected' : null
-                    ">
-                    {{ version }}
-                  </option>
-                </select>
-              </td>
-              <td class="version-style">
-                <span [attr.class]="getVersionStyle(package)">{{
-                  getVersion(package)
-                }}</span>
-              </td>
-              <td>{{ package.newerVersion }}</td>
-              <td>
-                <button
-                  type="button"
-                  (click)="update(project.id, package.packageName)"
-                  class="btn btn-default-sm btn-sm">
-                  Update
-                </button>
-                <button
-                  type="button"
-                  (click)="updateAll(project.id, package.packageName)"
-                  class="btn btn-default-sm btn-sm">
-                  Update All
-                </button>
-                <button
-                  type="button"
-                  (click)="remove(project.id, package.packageName)"
-                  class="btn btn-default-sm btn-sm">
-                  Remove
-                </button>
-                <button
-                  type="button"
-                  (click)="removeAll(project.id, package.packageName)"
-                  class="btn btn-default-sm btn-sm">
-                  Remove All
-                </button>
-              </td>
-            </tr>
-
-            <tr
-              class="tr-package"
-              *ngIf="!(project.packages && project.packages.length > 0)">
-              <td colspan="7" class="empty-table">
-                This project hasn't any package
+              
+              <td class="actions">
+                <div class="btn-group">
+                  <button
+                    class="btn btn-sm btn-outline-primary"
+                    (click)="showPackageVersions(project, pkg)"
+                    [disabled]="isLoading"
+                    title="View versions">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                  </button>
+                  
+                  <button
+                    class="btn btn-sm btn-outline-success"
+                    (click)="updatePackage(project, pkg)"
+                    [disabled]="isLoading || pkg.packageVersion === pkg.newerVersion || pkg.newerVersion === 'Unknown'"
+                    [title]="pkg.newerVersion === 'Unknown' ? 'Checking for updates...' : 'Update package'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                  </button>
+                  
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="removePackage(project, pkg)"
+                    [disabled]="isLoading"
+                    title="Remove package">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      <line x1="10" y1="11" x2="10" y2="17"></line>
+                      <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -176,4 +166,38 @@
       </div>
     </div>
   </div>
+  
+  <!-- Empty state -->
+  <ng-template #noProjects>
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="9" y1="15" x2="15" y2="15"></line>
+        </svg>
+      </div>
+      <h3>No Projects Found</h3>
+      <p>No NPM projects were found in your workspace.</p>
+      <button 
+        class="btn btn-primary" 
+        (click)="loadPackageVersion(true)" 
+        [disabled]="isLoading">
+        <span *ngIf="!isLoading">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"/>
+          </svg>
+          Refresh
+        </span>
+        <span *ngIf="isLoading">Loading...</span>
+      </button>
+    </div>
+  </ng-template>
+  
+  <!-- Loading overlay -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text">{{ loadingMessage || 'Loading...' }}</div>
+  </div>
 </div>
+

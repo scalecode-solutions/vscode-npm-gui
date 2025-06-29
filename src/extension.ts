@@ -28,6 +28,24 @@ import { copy } from './services/copy.service';
 export function activate(context: vscode.ExtensionContext) {
   const vscexpress = new VSCExpress(context, 'front-end');
   const workspacePath = vscode.workspace.workspaceFolders;
+  
+  // Handle messages from the webview
+  context.subscriptions.push(
+    vscode.window.registerWebviewPanelSerializer('VSCExpress', {
+      async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel) {
+        // Handle panel restoration if needed
+      }
+    })
+  );
+
+  // Listen for messages from the webview
+  context.subscriptions.push(
+    vscode.commands.registerCommand('getExtensionVersion', () => {
+      const packageJson = require('../package.json');
+      return Promise.resolve({ result: packageJson.version });
+    })
+  );
+
   if (workspacePath === undefined) {
     showErrorMessage('Work directory is empty!');
     throw 'Work directory is empty!';
